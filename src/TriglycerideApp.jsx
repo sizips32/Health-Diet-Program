@@ -80,20 +80,33 @@ const TriglycerideApp = () => {
         setLoading(true);
         setStep('generating');
 
+        const getDietaryPrompt = (pref) => {
+            switch (pref) {
+                case 'vegetarian': return "Vegetarian Diet (Plant-based with possible dairy/eggs, no meat/fish)";
+                case 'vegan': return "Strict Vegan Diet (100% Plant-based, no animal products, no dairy, no eggs)";
+                case 'pescatarian': return "Pescatarian Diet (Vegetables and Seafood, no meat)";
+                case 'korean': return "Korean Traditional Low-Carb Diet";
+                default: return "General Balanced Diet";
+            }
+        };
+
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
             const prompt = `
         Base on this user profile, create a highly detailed, non-repetitive 7-day triglyceride management program in JSON.
         Profile:
         - Current TG Level: ${userInfo.currentLevel} mg/dL
         - Wake: ${userInfo.wakeTime}, Sleep: ${userInfo.sleepTime}
-        - Diet: ${userInfo.dietaryPreference}
+        - Diet: ${getDietaryPrompt(userInfo.dietaryPreference)}
+        
+        CRITICAL: The "Diet" restriction MUST be strictly followed for ALL meals. 
+        Even if a daily theme suggests specific nutrients (like Omega-3), you MUST provide plant-based alternatives (e.g., Perilla oil, Chia seeds, Walnuts) instead of animal products (like fish) if the user is Vegetarian or Vegan.
         
         Requirements for JSON:
         1. "weekSchedule": Array of 7 days.
-        2. Each day must have a central "theme" (unique for each day, e.g., "심폐 강화의 날", "오메가-3 충전의 날").
+        2. Each day must have a central "theme" (unique for each day).
         3. "hourlySchedule": 5-7 events per day (time, activity, category[meal/exercise/general], details, benefit).
-        4. "dailySummary": An object with "fastingWindow" (e.g., "14시간") and "intensity" (e.g., "중강도").
+        4. "dailySummary": An object with "fastingWindow" and "intensity".
         5. Vary the exercise types and meals for each day to avoid repetition.
         6. Return ONLY the JSON object. No Markdown.
         7. Language: Korean.
@@ -326,8 +339,9 @@ const TriglycerideApp = () => {
                                         >
                                             <option value="general">일반식</option>
                                             <option value="korean">한식 위주</option>
-                                            <option value="vegetarian">채식 중심</option>
-                                            <option value="pescatarian">생선 포함 채식</option>
+                                            <option value="vegetarian">채식 (Vegetarian)</option>
+                                            <option value="vegan">비건 (Vegan)</option>
+                                            <option value="pescatarian">페스카테리언 (생선 포함 채식)</option>
                                         </select>
                                     </div>
                                 </div>
